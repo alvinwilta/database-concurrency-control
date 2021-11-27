@@ -59,6 +59,7 @@ def prettyPrint(t: list):
             print("C" + str(x.id) + "->", end="")
         else:
             print(f'{x.op}{str(x.id)}({x.res})->', end="")
+    print()
 
 
 # Asumsi operasi yang dilakukan t1 akan terurut dari indeks 0 hingga akhir
