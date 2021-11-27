@@ -2,9 +2,9 @@
 class Transaction:
     '''
     # Kelas transaksi, untuk mendefinisikan struct dari transaksi
-    op      : list of dict dari operasi yang dilakukan
-    time    : timestamp dari transaksi
-    curr_op : pointer untuk mengakses operasi dan untuk rollback
+    id      : id transaksi
+    op      : jenis operasi (R/W/C)
+    res     : resource yang diakses
     '''
 
     def __init__(self, id: int, op: str, res: str):
