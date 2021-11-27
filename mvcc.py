@@ -20,6 +20,10 @@ class Op:
     C = 'commit'
 
 
+def createOp(op: Op, res: str):
+    return {op: op, res: res}
+
+
 # Asumsi operasi yang dilakukan t1 akan terurut dari indeks 0 hingga akhir
 op = [{Op.R: 'A'}, {Op.R: 'B'}, {Op.W: 'B'}]
 
