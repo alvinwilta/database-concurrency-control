@@ -30,6 +30,7 @@ def createTransaction():
     n_commit = 0
     tmp = []
     trans_list = []
+    res_list = []
     is_fin = False
     while (not (is_fin)):
         inp = input('specify operations (R/W/C) ex. R1: ')
@@ -40,6 +41,8 @@ def createTransaction():
         if (id not in trans_list):
             trans_list.append(id)
         if (opr == R or opr == W):
+            if (res not in res_list):
+                res_list.append(res)
             tmp.append(Transaction(id=id, op=opr, res=res))
         elif (opr == C):
             n_commit += 1
@@ -50,7 +53,7 @@ def createTransaction():
         if(len(trans_list) == n_commit):
             is_fin = True
 
-    return tmp, trans_list
+    return tmp, trans_list, res_list
 
 
 def prettyPrint(t: list):
