@@ -1,10 +1,9 @@
 import utils as u
 
 x, y, z = u.createTransaction()
+u.prettyPrint(x)
 
 for el in x:
-    print(f'id:{el.id} op:{el.op} res:{el.res}')
+    print(el.pr())
 print(y)
 print(z)
-
-u.prettyPrint(x)

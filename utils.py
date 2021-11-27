@@ -18,8 +18,7 @@ class Transaction:
         self.op = op
         self.res = res
 
-    def pr():
-        print('test')
+    def pr(self):
         return (f'id:{self.id} op:{self.op} res:{self.res}')
 
 
