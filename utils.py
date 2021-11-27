@@ -5,11 +5,11 @@ W = 'W'
 C = 'C'
 
 
-class Transaction:
+class Operation:
     '''
     # Kelas transaksi, untuk mendefinisikan struct dari transaksi
     id      : id transaksi
-    op      : jenis operasi (R/W/C)
+    op      : operator (R/W/C)
     res     : resource yang diakses
     '''
 
@@ -24,7 +24,7 @@ class Transaction:
 
 def createTransaction():
     '''
-    Function for inputting transaction data
+    Function for inputting operation data
     '''
     n_commit = 0
     tmp = []
@@ -42,10 +42,10 @@ def createTransaction():
         if (opr == R or opr == W):
             if (res not in res_list):
                 res_list.append(res)
-            tmp.append(Transaction(id=id, op=opr, res=res))
+            tmp.append(Operation(id=id, op=opr, res=res))
         elif (opr == C):
             n_commit += 1
-            tmp.append(Transaction(id=id, op=C, res='commit'))
+            tmp.append(Operation(id=id, op=C, res='commit'))
 
         else:
             print('invalid operations! ')
