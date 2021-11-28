@@ -1,4 +1,4 @@
-a = {}
+r = set()
 
-for x in a:
-    print('test')
+r.add(0)
+print(r)

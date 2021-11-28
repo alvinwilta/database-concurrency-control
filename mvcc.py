@@ -28,13 +28,14 @@ class ResourceVersion:
         self.w = w
         self.used_by = set()
         if (used != None):
-            self.add(used)
+            self.used_by.add(used)
 
     def read(self, time: int, ver: int):
-        if (str(self.r) >= time):
+        if (int(self.r) >= time):
             print(f'[READ] {self.name}{str(self.ver)}')
         else:
             print(f'[READ] {self.name}{str(self.ver)} changing RTS to {time}')
+            self.r = time
         self.used_by.add(ver)
 
     def write(self, time: int, ver: int):
@@ -71,11 +72,11 @@ class ManageTS:
     def __init__(self, resource: list, transaction: list, transaction_ts: list):
         self.rvl = []
         self.tsl = {}
-        self.max_tsl = max(transaction_ts)
+        self.max_tsl = int(max(transaction_ts))
         for res in resource:
             self.rvl.append([ResourceVersion(name=res)])
         for i, trans in enumerate(transaction):
-            self.tsl[trans] = transaction_ts[i]
+            self.tsl[int(trans)] = int(transaction_ts[i])
 
     def read(self, id: int, name: str):
         for res in self.rvl:
@@ -91,7 +92,7 @@ class ManageTS:
                 need_rollback = False
                 for i, r in enumerate(reversed(res)):
                     # iterating to find suitable version for writing
-                    time = self.tsl[id]
+                    time = int(self.tsl[id])
                     if (r.r <= time):
                         if (r.w == time):
                             r.write(time=time, ver=id)
@@ -101,14 +102,15 @@ class ManageTS:
                             res.append(ResourceVersion(
                                 name=name, ver=id, r=time, w=time, used=id))
                         break
-                    elif (r.r > time and i == 0):
+                    elif (r.r > time and i == len(res)-1):
                         self.tsl[id] = self.max_tsl + 1
                         self.max_tsl += 1
                         print(
                             f'[ROLLBACK] Changed TS for T{id}={self.max_tsl}')
                         need_rollback = True
+                        rollback_tmp = self.rollbacked_transaction(id=id)
                         roll_trans = set.union(
-                            roll_trans, rollbacked_transaction(id=id))
+                            roll_trans, rollback_tmp)
                         break
                 break
         return (need_rollback, roll_trans)
@@ -178,3 +180,5 @@ for i, op in enumerate(op_list):
                 rollback_index.append({i: op.id})
                 rollback_operation_n = trans_list_rollback_n[op.id]
                 op_list[i:i] = trans_list[op.id][:rollback_operation_n]
+
+u.prettyPrint(op_list)
