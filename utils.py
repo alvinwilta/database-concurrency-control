@@ -32,7 +32,7 @@ def createTransaction():
     res_list = []
     is_fin = False
     while (not (is_fin)):
-        inp = input('specify operations (R/W/C) ex. R1: ')
+        inp = input('specify operations (R/W/C): ')
         opr = inp[0]
         id = int(inp[1])
         if (not(opr == C)):
