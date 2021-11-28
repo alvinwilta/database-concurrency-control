@@ -3,6 +3,7 @@
 R = 'R'
 W = 'W'
 C = 'C'
+RB = 'RB'
 
 
 class Operation:
@@ -55,11 +56,29 @@ def createTransaction():
     return tmp, trans_list, res_list
 
 
+def createTransactionFromCode(operations: list):
+    # Can only handle 1-digit transaction id (0-9)
+    tmp = []
+    res_list = []
+    trans_list = []
+    for op in operations:
+        if (op[0] != C):
+            tmp.append(Operation(id=int(op[1]), op=op[0], res=op[2:]))
+            res_list.append(op[2:])
+            if (int(op[1] not in trans_list)):
+                trans_list.append(int(op[1]))
+        else:
+            tmp.append(Operation(id=int(op[1]), op=op[0], res='commit'))
+    return tmp, trans_list, res_list
+
+
 def prettyPrint(t: list):
     ret = ''
     for x in t:
         if (x.op == C):
             ret += ("C" + str(x.id) + "->")
+        elif (x.op == RB):
+            ret += ('Rollback T' + x.id)
         else:
             ret += (x.op + str(x.id) + '(' + x.res + ')->')
     print(ret[:-2])

@@ -9,6 +9,7 @@ import utils as u
 R = 'R'
 W = 'W'
 C = 'C'
+RB = 'RB'
 
 
 class ResourceVersion:
@@ -143,8 +144,14 @@ class ManageTS:
 # trans_list_ts         : storing timestamps for each transaction [TS-1, TS-2, TS-3, ...]
 # trans_list_rollback_n : indicating how many operation will be rollbacked for that transaction
 # rollback_index        : indicating where the rollback is applied and which transaction [{index: id}, {index2: id2}, ...]
+operations = ['R5x', 'R2y', 'R1y', 'W3y', 'W3z',
+              'R5z', 'R2z', 'R1x', 'R4w', 'W3w', 'W5y', 'W5z', 'C1', 'C2', 'C3', 'C4', 'C5']
 
-op_list, trans_list_id, res_list = u.createTransaction()
+#op_list, trans_list_id, res_list = u.createTransaction()
+op_list, trans_list_id, res_list = u.createTransactionFromCode(
+    operations=operations)
+
+
 u.prettyPrint(op_list)
 trans_list = {}
 trans_list_ts = []
@@ -163,7 +170,6 @@ for op in op_list:
 
 
 s = ManageTS(res_list, trans_list_id, trans_list_ts)
-rollback_set = set()
 for i, op in enumerate(op_list):
     trans_list_rollback_n[op.id] += 1
     if (op.op == R):
@@ -181,4 +187,7 @@ for i, op in enumerate(op_list):
                 rollback_operation_n = trans_list_rollback_n[op.id]
                 op_list[i:i] = trans_list[op.id][:rollback_operation_n]
 
+for i, rb in enumerate(rollback_index):
+    op_list[i:i] = u.Operation(id=rb[i], op=RB, res='')
+s.print_content()
 u.prettyPrint(op_list)
