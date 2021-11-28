@@ -1,10 +1,14 @@
 # Created by Alvin Wilta 13519163
 # Multiversion Concurrency Control Simulation
 # Assume rollbacks are cascading and rollbacked transactions are prioritized
-
+# Assume rollbacked transactions are always executed immediately after rollback
+# Assume commits are always at the end of each transactions
 
 import utils as u
 
+is_hardcoded = True
+operations = ['R5x', 'R2y', 'R1y', 'W3y', 'W3z',
+              'R5z', 'R2z', 'R1x', 'R4w', 'W3w', 'W5y', 'W5z', 'C1', 'C2', 'C3', 'C4', 'C5']
 
 R = 'R'
 W = 'W'
@@ -19,7 +23,7 @@ class ResourceVersion:
     ver     : resource WTS and RTS version
     r       : RTS (read timestamp)
     w       : WTS (write timestamp)
-    used_by    : transaction id that have used this resource version, for cascading rollback
+    used_by : transaction id that have used this resource version, for cascading rollback
     '''
 
     def __init__(self, name: str, ver=0, r=0, w=0, used=None):
@@ -153,17 +157,14 @@ def enterTimestamp():
 # trans_list_ts         : storing timestamps for each transaction - [TS-1, TS-2, TS-3, ...]
 # trans_list_rollback_n : indicating how many operation will be rollbacked for that transaction - {id:n, id2:n2, ...}
 # rollback_index        : indicating where the rollback is applied and which transaction - [{index: id}, {index2: id2}, ...]
-operations = ['R5x', 'R2y', 'R1y', 'W3y', 'W3z',
-              'R5z', 'R2z', 'R1x', 'R4w', 'W3w', 'W5y', 'W5z', 'C1', 'C2', 'C3', 'C4', 'C5']
 
-#op_list, trans_list_id, res_list = u.createTransaction()
-op_list, trans_list_id, res_list = u.createTransactionFromCode(
-    operations=operations)
-
+if (is_hardcoded):
+    op_list, trans_list_id, res_list = u.createTransactionFromCode(
+        operations=operations)
+else:
+    op_list, trans_list_id, res_list = u.createTransaction()
 
 u.prettyPrint(op_list)
-print(trans_list_id)
-print(res_list)
 trans_list = {}
 rollback_index = []
 trans_list_rollback_n = {}
