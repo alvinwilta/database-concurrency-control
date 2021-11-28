@@ -6,7 +6,10 @@
 
 import utils as u
 
+# Change this if necessary
 is_hardcoded = True
+
+# Change this to define operations manually, transaction ID must be 1 digit
 operations = ['R5x', 'R2y', 'R1y', 'W3y', 'W3z',
               'R5z', 'R2z', 'R1x', 'R4w', 'W3w', 'W5y', 'W5z', 'C1', 'C2', 'C3', 'C4', 'C5']
 
