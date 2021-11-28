@@ -117,9 +117,7 @@ class ManageTS:
         return (need_rollback, roll_trans)
 
     def rollbacked_transaction(self, id: int):
-        # cari dulu versi yang ada melibatkan T tersebut
-        # return semua used_bynya, semua transaksi yang ada di used_by itu akan dirollback
-        # delete semua versi terkait
+        # Get all transaction that is using resource version created by this transaction
         roll_trans = set()
         for i, ver_list in enumerate(self.rvl):
             for j, ver in enumerate(ver_list):
@@ -138,12 +136,23 @@ class ManageTS:
         print('==========')
 
 
+def enterTimestamp():
+    trans_list_ts = []
+    print('Input TS for each transaction, press enter to assume TS(Ti) = i')
+    for trans in trans_list_id:
+        id = input(f'TS for T{trans}: ')
+        if (id == ''):
+            trans_list_ts.append(trans)
+        else:
+            trans_list_ts.append(int(id))
+    return trans_list_ts
+
+
 # Main Function
-# a = {id: [Operations1, Operations2], id2: [Operations3, Operations4]}
-# trans_list            : separating transaction to their own
-# trans_list_ts         : storing timestamps for each transaction [TS-1, TS-2, TS-3, ...]
-# trans_list_rollback_n : indicating how many operation will be rollbacked for that transaction
-# rollback_index        : indicating where the rollback is applied and which transaction [{index: id}, {index2: id2}, ...]
+# trans_list            : separating transaction to itself - {id: [Operation1, Operation2], id2: [Operation3, Operation4], ...}
+# trans_list_ts         : storing timestamps for each transaction - [TS-1, TS-2, TS-3, ...]
+# trans_list_rollback_n : indicating how many operation will be rollbacked for that transaction - {id:n, id2:n2, ...}
+# rollback_index        : indicating where the rollback is applied and which transaction - [{index: id}, {index2: id2}, ...]
 operations = ['R5x', 'R2y', 'R1y', 'W3y', 'W3z',
               'R5z', 'R2z', 'R1x', 'R4w', 'W3w', 'W5y', 'W5z', 'C1', 'C2', 'C3', 'C4', 'C5']
 
@@ -153,13 +162,13 @@ op_list, trans_list_id, res_list = u.createTransactionFromCode(
 
 
 u.prettyPrint(op_list)
+print(trans_list_id)
+print(res_list)
 trans_list = {}
-trans_list_ts = []
-trans_list_rollback_n = {}
 rollback_index = []
-for trans in trans_list_id:
-    id = input(f'Input TS for transaction {trans}:')
-    trans_list_ts.append(id)
+trans_list_rollback_n = {}
+trans_list_ts = enterTimestamp()
+
 
 # initialize transaction list
 for t in trans_list_id:
@@ -177,17 +186,18 @@ for i, op in enumerate(op_list):
     elif (op.op == W):
         need_rollback, roll_trans = s.write(id=op.id, name=op.res)
         if (need_rollback):
-            rollback_index.append({i: op.id})
+            rollback_index.append([i, op.id])
             rollback_operation_n = trans_list_rollback_n[op.id]
             op_list[i:i] = trans_list[op.id][:rollback_operation_n]
+            t = op.id
             roll_trans.remove(op.id)
-            for id in roll_trans:
+            for ids in roll_trans:
                 # rollback cascade
-                rollback_index.append({i: op.id})
-                rollback_operation_n = trans_list_rollback_n[op.id]
-                op_list[i:i] = trans_list[op.id][:rollback_operation_n]
+                rollback_index.append([i, ids])
+                rollback_operation_n = trans_list_rollback_n[ids]
+                op_list[i:i] = trans_list[ids][:rollback_operation_n]
 
-for i, rb in enumerate(rollback_index):
-    op_list[i:i] = u.Operation(id=rb[i], op=RB, res='')
+for rb in reversed(rollback_index):
+    op_list[rb[0]:rb[0]] = [u.Operation(id=rb[1], op=RB, res='commit')]
 s.print_content()
 u.prettyPrint(op_list)

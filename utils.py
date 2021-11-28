@@ -79,7 +79,7 @@ def prettyPrint(t: list):
         if (x.op == C):
             ret += ("C" + str(x.id) + "->")
         elif (x.op == RB):
-            ret += ('Rollback T' + x.id)
+            ret += ('Rollback T' + str(x.id) + '->')
         else:
             ret += (x.op + str(x.id) + '(' + x.res + ')->')
     print(ret[:-2])
