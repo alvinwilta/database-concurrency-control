@@ -5,8 +5,6 @@
 
 import utils as u
 
-op_list, trans_list, res_list = u.createTransaction()
-u.prettyPrint(op_list)
 
 R = 'R'
 W = 'W'
@@ -20,27 +18,20 @@ class ResourceVersion:
     ver     : resource WTS and RTS version
     r       : RTS (read timestamp)
     w       : WTS (write timestamp)
-    TODO: Implement cascade rollback using used
-    used    : transaction id that have used this resource version, for cascading rollback
+    used_by    : transaction id that have used this resource version, for cascading rollback
     '''
 
-    def __init__(self, name: str, ver: None, r: None, w: None, used: None):
+    def __init__(self, name: str, ver=0, r=0, w=0, used=None):
         self.name = name
-        self.ver = 0
-        self.r = 0
-        self.w = 0
+        self.ver = ver
+        self.r = r
+        self.w = w
         self.used_by = set()
-        if (ver != None):
-            self.ver = ver
-        if (r != None):
-            self.r = r
-        if (w != None):
-            self.w = w
         if (used != None):
             self.add(used)
 
     def read(self, time: int, ver: int):
-        if (self.r >= time):
+        if (str(self.r) >= time):
             print(f'[READ] {self.name}{str(self.ver)}')
         else:
             print(f'[READ] {self.name}{str(self.ver)} changing RTS to {time}')
@@ -89,7 +80,7 @@ class ManageTS:
     def read(self, id: int, name: str):
         for res in self.rvl:
             if (res[-1].name == name):
-                res[-1].read(time=self.tsl[id])
+                res[-1].read(time=self.tsl[id], ver=id)
                 break
 
     def write(self, name: str, id: int):
@@ -120,7 +111,7 @@ class ManageTS:
                             roll_trans, rollbacked_transaction(id=id))
                         break
                 break
-        return (not need_rollback, roll_trans)
+        return (need_rollback, roll_trans)
 
     def rollbacked_transaction(self, id: int):
         # cari dulu versi yang ada melibatkan T tersebut
@@ -132,6 +123,7 @@ class ManageTS:
                 if (ver.ver == id):
                     roll_trans = set.union(roll_trans, ver.used_by)
                     self.rvl[i].pop(j)
+        print('Transactions to be rollbacked:', roll_trans)
         return roll_trans
 
     def print_content(self):
@@ -144,14 +136,45 @@ class ManageTS:
 
 
 # Main Function
-trans_list_ts = []
-for trans in trans_list:
-    trans_list_ts.append(input('Input TS for transaction', trans, ':'))
+# a = {id: [Operations1, Operations2], id2: [Operations3, Operations4]}
+# trans_list            : separating transaction to their own
+# trans_list_ts         : storing timestamps for each transaction [TS-1, TS-2, TS-3, ...]
+# trans_list_rollback_n : indicating how many operation will be rollbacked for that transaction
+# rollback_index        : indicating where the rollback is applied and which transaction [{index: id}, {index2: id2}, ...]
 
-s = ManageTS(res_list, trans_list, trans_list_ts)
-rollback_set = set()
+op_list, trans_list_id, res_list = u.createTransaction()
+u.prettyPrint(op_list)
+trans_list = {}
+trans_list_ts = []
+trans_list_rollback_n = {}
+rollback_index = []
+for trans in trans_list_id:
+    id = input(f'Input TS for transaction {trans}:')
+    trans_list_ts.append(id)
+
+# initialize transaction list
+for t in trans_list_id:
+    trans_list[t] = []
+    trans_list_rollback_n[t] = 0
 for op in op_list:
+    trans_list[op.id].append(op)
+
+
+s = ManageTS(res_list, trans_list_id, trans_list_ts)
+rollback_set = set()
+for i, op in enumerate(op_list):
+    trans_list_rollback_n[op.id] += 1
     if (op.op == R):
         s.read(id=op.id, name=op.res)
     elif (op.op == W):
-        s.write(id=op.id, name=op.res)
+        need_rollback, roll_trans = s.write(id=op.id, name=op.res)
+        if (need_rollback):
+            rollback_index.append({i: op.id})
+            rollback_operation_n = trans_list_rollback_n[op.id]
+            op_list[i:i] = trans_list[op.id][:rollback_operation_n]
+            roll_trans.remove(op.id)
+            for id in roll_trans:
+                # rollback cascade
+                rollback_index.append({i: op.id})
+                rollback_operation_n = trans_list_rollback_n[op.id]
+                op_list[i:i] = trans_list[op.id][:rollback_operation_n]
