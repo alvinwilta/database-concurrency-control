@@ -64,8 +64,9 @@ def createTransactionFromCode(operations: list):
     for op in operations:
         if (op[0] != C):
             tmp.append(Operation(id=int(op[1]), op=op[0], res=op[2:]))
-            res_list.append(op[2:])
-            if (int(op[1] not in trans_list)):
+            if (op[2:] not in res_list):
+                res_list.append(op[2:])
+            if (int(op[1]) not in trans_list):
                 trans_list.append(int(op[1]))
         else:
             tmp.append(Operation(id=int(op[1]), op=op[0], res='commit'))
