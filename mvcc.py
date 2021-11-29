@@ -1,15 +1,15 @@
 # Created by Alvin Wilta 13519163
 # Multiversion Concurrency Control Simulation
-# Assume rollbacks are cascading and rollbacked transactions are prioritized
+# Assume rollbacks are cascading
 # Assume rollbacked transactions are always executed immediately after rollback
 # Assume commits are always at the end of each transactions
 
 import utils as u
 
-# Change this if necessary
+# Change this wo switch between user input/hardcode
 is_hardcoded = True
 
-# Change this to define operations manually, transaction ID must be 1 digit
+# Change this to define operations manually, transaction ID must be 1 digit. Ordering is important!
 operations = ['R5x', 'R2y', 'R1y', 'W3y', 'W3z',
               'R5z', 'R2z', 'R1x', 'R4w', 'W3w', 'W5y', 'W5z', 'C1', 'C2', 'C3', 'C4', 'C5']
 
@@ -36,20 +36,21 @@ class ResourceVersion:
         self.w = w
         self.used_by = set()
         if (used != None):
-            self.used_by.add(used)
+            self.used_by.add(int(used))
 
     def read(self, time: int, ver: int):
         if (int(self.r) >= time):
-            print(f'[READ] {self.name}{str(self.ver)}')
+            print(f'[T{str(ver)} READ {self.name}] {self.name}{str(self.ver)}')
         else:
-            print(f'[READ] {self.name}{str(self.ver)} changing RTS to {time}')
+            print(
+                f'[T{str(ver)} READ {self.name}] {self.name}{str(self.ver)}, RTS={time} (changed)')
             self.r = time
-        self.used_by.add(ver)
+        self.used_by.add(int(ver))
 
     def write(self, time: int, ver: int):
         print(
-            f'[WRITE] {self.name}{str(self.ver)}, overwriting content')
-        self.used_by.add(ver)
+            f'[T{str(ver)} WRITE {self.name}] {self.name}{str(self.ver)}, overwriting content')
+        self.used_by.add(int(ver))
 
     def print_content(self):
         print(
@@ -87,13 +88,19 @@ class ManageTS:
             self.tsl[int(trans)] = int(transaction_ts[i])
 
     def read(self, id: int, name: str):
+        found = False
         for res in self.rvl:
             if (res[-1].name == name):
-                res[-1].read(time=self.tsl[id], ver=id)
-                break
+                for i, r in enumerate(reversed(res)):
+                    if (r.r <= int(self.tsl[id]) or i == len(res)-1):
+                        res[len(res)-1-i].read(time=self.tsl[id], ver=id)
+                        found = True
+                        break
+                if (found):
+                    break
 
     def write(self, name: str, id: int):
-        roll_trans = set()
+        roll_trans = []
         for res in self.rvl:
             # iterating to find resource version based on name
             if (res[-1].name == name):
@@ -106,7 +113,7 @@ class ManageTS:
                             r.write(time=time, ver=id)
                         else:
                             print(
-                                f'[CREATE VER] Created new version for {name}{id} with RTS and WTS: {time}')
+                                f'[T{id} WRITE {name}] Created {name}{id} with RTS and WTS: {time}')
                             res.append(ResourceVersion(
                                 name=name, ver=id, r=time, w=time, used=id))
                         break
@@ -116,22 +123,27 @@ class ManageTS:
                         print(
                             f'[ROLLBACK] Changed TS for T{id}={self.max_tsl}')
                         need_rollback = True
-                        rollback_tmp = self.rollbacked_transaction(id=id)
-                        roll_trans = set.union(
-                            roll_trans, rollback_tmp)
+                        roll_trans = self.rollbacked_transaction(id=id)
+                        print(roll_trans)
                         break
                 break
         return (need_rollback, roll_trans)
 
     def rollbacked_transaction(self, id: int):
         # Get all transaction that is using resource version created by this transaction
-        roll_trans = set()
+        roll_trans = []
         for i, ver_list in enumerate(self.rvl):
             for j, ver in enumerate(ver_list):
                 if (ver.ver == id):
-                    roll_trans = set.union(roll_trans, ver.used_by)
+                    tmp = ver.used_by
+                    for el in tmp:
+                        if int(el) not in roll_trans:
+                            roll_trans.append(int(el))
                     self.rvl[i].pop(j)
-        print('Transactions to be rollbacked:', roll_trans)
+        print('Transactions to be rollbacked:', end=' ')
+        for roll in roll_trans:
+            print(f'T{str(roll)}', end=' ')
+        print()
         return roll_trans
 
     def print_content(self):
@@ -194,12 +206,12 @@ for i, op in enumerate(op_list):
             rollback_operation_n = trans_list_rollback_n[op.id]
             op_list[i:i] = trans_list[op.id][:rollback_operation_n]
             t = op.id
-            roll_trans.remove(op.id)
+            roll_trans.pop(0)
             for ids in roll_trans:
                 # rollback cascade
                 rollback_index.append([i, ids])
                 rollback_operation_n = trans_list_rollback_n[ids]
-                op_list[i:i] = trans_list[ids][:rollback_operation_n]
+                op_list[i+1:i+1] = trans_list[ids][:rollback_operation_n]
 
 for rb in reversed(rollback_index):
     op_list[rb[0]:rb[0]] = [u.Operation(id=rb[1], op=RB, res='commit')]
