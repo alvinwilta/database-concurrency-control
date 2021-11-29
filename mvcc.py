@@ -124,7 +124,6 @@ class ManageTS:
                             f'[ROLLBACK] Changed TS for T{id}={self.max_tsl}')
                         need_rollback = True
                         roll_trans = self.rollbacked_transaction(id=id)
-                        print(roll_trans)
                         break
                 break
         return (need_rollback, roll_trans)
