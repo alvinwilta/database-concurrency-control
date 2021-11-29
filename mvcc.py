@@ -103,7 +103,7 @@ class ManageTS:
                             res.append(ResourceVersion(
                                 name=name, ver=id, r=time, w=time, used=id))
                         break
-                    elif (r.r > time and i == len(res)-1):
+                    elif (r.r >= time and i == len(res)-1):
                         self.tsl[id] = self.max_tsl + 1
                         self.max_tsl += 1
                         print(
