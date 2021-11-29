@@ -35,7 +35,7 @@ def createTransaction():
     while (not (is_fin)):
         inp = input('specify operations (R/W/C): ')
         opr = inp[0]
-        id = int(inp[1])
+        id = int(inp[1:])
         if (not(opr == C)):
             res = input('specify resource for operations: ')
         if (id not in trans_list):

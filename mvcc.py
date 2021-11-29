@@ -8,10 +8,12 @@ import utils as u
 
 # Change this wo switch between user input/hardcode
 is_hardcoded = True
-
 # Change this to define operations manually, transaction ID must be 1 digit. Ordering is important!
-operations = ['R5x', 'R2y', 'R1y', 'W3y', 'W3z',
-              'R5z', 'R2z', 'R1x', 'R4w', 'W3w', 'W5y', 'W5z', 'C1', 'C2', 'C3', 'C4', 'C5']
+operations2 = ['R5x', 'R2y', 'R1y', 'W3y', 'W3z',
+               'R5z', 'R2z', 'R1x', 'R4w', 'W3w', 'W5y', 'W5z', 'C1', 'C2', 'C3', 'C4', 'C5']
+
+operations = ['R1q', 'W1q', 'R2q', 'W2q', 'R1q',
+              'W1q', 'W2q', 'R3q', 'W3q', 'C3', 'C2', 'C1']
 
 R = 'R'
 W = 'W'
@@ -94,16 +96,31 @@ class ManageTS:
                 for i, r in enumerate(reversed(res)):
                     # iterating to find suitable version for writing
                     time = int(self.tsl[id])
-                    if (r.r < time):
-                        if (r.w == time):
+                    if (r.r <= time):
+                        if (int(r.w) == time):
                             r.write(time=time, ver=id)
                         else:
-                            print(
-                                f'[T{id} WRITE {name}] Created {name}{time} with RTS and WTS: {time}')
-                            res.append(ResourceVersion(
-                                name=name, ver=id, r=time, w=time, used=id))
+                            # check whether this version is already exist or not
+                            for resource_list in self.rvl:
+                                if (resource_list[-1].name == name):
+                                    for resource in resource_list:
+                                        if (resource.ver == id):
+                                            self.tsl[id] = self.max_tsl + 1
+                                            self.max_tsl += 1
+                                            print(
+                                                f'[ROLLBACK] Changed TS for T{id}={self.max_tsl}')
+                                            need_rollback = True
+                                            roll_trans = self.rollbacked_transaction(
+                                                id=id)
+                                            break
+                                    break
+                            if (not need_rollback):
+                                print(
+                                    f'[T{id} WRITE {name}] Created {name}{id} with RTS and WTS: {time}')
+                                res.append(ResourceVersion(
+                                    name=name, ver=id, r=time, w=time, used=id))
                         break
-                    elif (r.r >= time and i == len(res)-1):
+                    elif (r.r > time and i == len(res)-1):
                         self.tsl[id] = self.max_tsl + 1
                         self.max_tsl += 1
                         print(
@@ -159,6 +176,12 @@ def enterTimestamp():
 # rollback_index        : indicating where the rollback is applied and which transaction - [{index: id}, {index2: id2}, ...]
 
 # managing inputs
+print("""
+Multiversion Timestamp Ordering Concurrency Control Simulation
+- Assume rollbacks are cascading
+- Assume rollbacked transactions are always executed immediately after rollback
+- Assume commits are always at the end of each transactions and won't hold for each other
+""")
 if (is_hardcoded):
     op_list, trans_list_id, res_list = u.createTransactionFromCode(
         operations=operations)
