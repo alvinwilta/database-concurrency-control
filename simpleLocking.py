@@ -20,7 +20,6 @@ class Transaction:
     def releaseLockedResource(self):
         releasedResources = []
         for lock in self.lockedResources:
-            print("UL("+str(lock.lockedResource)+")")
             releasedResources.append(lock.lockedResource)
         self.lockedResources = []
         return releasedResources
@@ -34,17 +33,14 @@ class SimpleLocking:
             self.transactions[id] = Transaction(id,'Active',ts)
             ts += 1
         self.resources = resources 
-        # self.operations = operations
-        # self.transactions = transactions
+        self.processDone = []
         self.lockList = []
         self.iterator = 0
     
     def runOp(self, operation, transactionID, resource):
         # Hapus dari Process
+        self.processDone.append(self.process[self.iterator])
         self.deleteCurrentOperation()
-
-        # Tampilkan Output
-        print(operation+str(transactionID)+"("+str(resource+")"))
 
     def writeLock(self, transactionID, resource, op):
         # Cari lock teradap resource pada lockList
@@ -70,30 +66,39 @@ class SimpleLocking:
                 self.woundWait(transactionID, lockedByOthers, op, resource)
             else:
                 # Grant XL
-                print("XL"+str(transactionID)+"("+str(resource)+")")
+                self.processDone.append(u.Operation(transactionID,"XL",resource))
                 self.transactions[transactionID].lockedResources.append(Lock('XL',resource))
                 self.runOp(op,transactionID, resource)
 
     def commit(self, transactionID):
         releasedResources = self.transactions[transactionID].releaseLockedResource()
+
+        for res in releasedResources:
+            self.processDone.append(u.Operation(transactionID,"UL",res))
+
+        self.processDone.append(self.process[self.iterator])
         self.deleteCurrentOperation()
-        print("C" + str(transactionID))
 
         for i in range (len(self.process)):
-            if (self.transactions[self.process[i].id].transactionState == 'Waiting' and self.process[i].res in releasedResources):
+            if ((self.transactions[self.process[i].id].transactionState == 'Waiting' or self.transactions[self.process[i].id].transactionState == 'Aborted') and self.process[i].res in releasedResources):
                 self.transactions[self.process[i].id].transactionState = 'Active'
                 self.iterator = i
                 break                
 
 
     def abort(self, transactionID):
-        self.transactions[transactionID].releaseLockedResource()
+        releasedResources = self.transactions[transactionID].releaseLockedResource()
+        for res in releasedResources:
+            self.processDone.append(u.Operation(transactionID,"UL",res))
+        
         self.transactions[transactionID].transactionState = 'Aborted'
-        print("Aborting transaction with ID", transactionID)
+        self.processDone.append(u.Operation(transactionID,'RB','rollback'))
 
 
     def deleteCurrentOperation(self):
         del self.process[self.iterator]
+        if (self.iterator == len(self.process)):
+            self.incIterator()
     
     def woundWait(self, requestingTransactionId, holdingTransactionId, operation, resource):
         if (self.transactions[requestingTransactionId].timeStamp < self.transactions[holdingTransactionId].timeStamp):
@@ -102,12 +107,12 @@ class SimpleLocking:
             self.writeLock(requestingTransactionId, resource, operation)
         else:
             # waiting for holding transaction
-            print("Transaction with ID", requestingTransactionId, "is waiting ...")
+            self.processDone.append(u.Operation(requestingTransactionId,"Waiting",resource))
             self.transactions[requestingTransactionId].transactionState = 'Waiting'
             self.incIterator()
     
     def incIterator(self):
-        if (self.iterator == len(self.process) - 1):
+        if (self.iterator >= len(self.process) - 1):
             self.iterator = 0
             for t in self.transactions.values():
                 if (t.transactionState == 'Waiting'):
@@ -130,6 +135,7 @@ class SimpleLocking:
                     self.deleteCurrentOperation()
                 else:
                     self.incIterator()
+        u.prettyPrint(self.processDone)
 
 
 class TwoPhaseLocking:
@@ -145,13 +151,12 @@ class TwoPhaseLocking:
         # self.transactions = transactions
         self.lockList = []
         self.iterator = 0
+        self.processDone = []
     
     def runOp(self, operation, transactionID, resource):
         # Hapus dari Process
+        self.processDone.append(self.process[self.iterator])
         self.deleteCurrentOperation()
-
-        # Tampilkan Output
-        print(operation+str(transactionID)+"("+str(resource+")"))
 
     def writeLock(self, transactionID, resource, op):
         # Cari lock teradap resource pada lockList
@@ -177,7 +182,7 @@ class TwoPhaseLocking:
                 self.woundWait(transactionID, lockedByOthers, 'XL', op, resource)
             else:
                 # Grant XL
-                print("XL"+str(transactionID)+"("+str(resource)+")")
+                self.processDone.append(u.Operation(transactionID,"XL",resource))
                 self.transactions[transactionID].lockedResources.append(Lock('XL',resource))
                 self.runOp(op,transactionID, resource)
 
@@ -207,31 +212,41 @@ class TwoPhaseLocking:
                 self.woundWait(transactionID, xlByOthers, 'SL', op, resource)
             else:
                 # Grant SL
-                print("SL"+str(transactionID)+"("+str(resource)+")")
+                self.processDone.append(u.Operation(transactionID,"SL",resource))
                 self.transactions[transactionID].lockedResources.append(Lock('SL',resource))
                 self.runOp(op,transactionID,resource)
 
 
     def commit(self, transactionID):
         releasedResources = self.transactions[transactionID].releaseLockedResource()
+
+        for res in releasedResources:
+            self.processDone.append(u.Operation(transactionID,"UL",res))
+
+        self.processDone.append(self.process[self.iterator])
         self.deleteCurrentOperation()
-        print("C" + str(transactionID))
 
         for i in range (len(self.process)):
-            if (self.transactions[self.process[i].id].transactionState == 'Waiting' and self.process[i].res in releasedResources):
+            if ((self.transactions[self.process[i].id].transactionState == 'Waiting' or self.transactions[self.process[i].id].transactionState == 'Aborted') and self.process[i].res in releasedResources):
                 self.transactions[self.process[i].id].transactionState = 'Active'
-                self.iterator = i
-                break                
+        self.iterator = 0
 
 
     def abort(self, transactionID):
-        self.transactions[transactionID].releaseLockedResource()
+        releasedResources = self.transactions[transactionID].releaseLockedResource()
+
+        for res in releasedResources:
+            self.processDone.append(u.Operation(transactionID,"UL",res))
+
         self.transactions[transactionID].transactionState = 'Aborted'
-        print("Aborting transaction with ID", transactionID)
+        self.processDone.append(u.Operation(transactionID,'RB','rollback'))
 
 
     def deleteCurrentOperation(self):
         del self.process[self.iterator]
+        if (self.iterator == len(self.process)):
+            self.incIterator()
+
     
     def woundWait(self, requestingTransactionId, holdingTransactionId, lockType, operation, resource):
         if (self.transactions[requestingTransactionId].timeStamp < self.transactions[holdingTransactionId].timeStamp):
@@ -243,12 +258,12 @@ class TwoPhaseLocking:
                 self.writeLock(requestingTransactionId, resource, operation)
         else:
             # waiting for holding transaction
-            print("Transaction with ID", requestingTransactionId, "is waiting ...")
+            self.processDone.append(u.Operation(requestingTransactionId,"Waiting",resource))
             self.transactions[requestingTransactionId].transactionState = 'Waiting'
             self.incIterator()
     
     def incIterator(self):
-        if (self.iterator == len(self.process) - 1):
+        if (self.iterator >= len(self.process) - 1):
             self.iterator = 0
             for t in self.transactions.values():
                 if (t.transactionState == 'Waiting'):
@@ -284,6 +299,7 @@ class TwoPhaseLocking:
                 else:
                     self.incIterator()
 
+        u.prettyPrint(self.processDone)
 
 
 process, listTransId, resources = u.createTransaction()
