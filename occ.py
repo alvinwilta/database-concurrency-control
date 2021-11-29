@@ -78,7 +78,7 @@ def getCommitTimestamp(arr, num):
 
 # check validation
 def isTransactionValid(arr, num, arr_timestamp, arr_num, arr_op):
-  isCurrentValid = True
+  valid = True
   check_queue = []
   for x in arr_timestamp:
     if(int(x[3]) < arr_timestamp[arr_num.index(num)][3]):
@@ -95,14 +95,14 @@ def isTransactionValid(arr, num, arr_timestamp, arr_num, arr_op):
 
   # check from current transaction to all transaction before
   i = 0
-  while i < len(check_queue) and isCurrentValid:
-    isCurrentValid = compareTS(check_queue[i], arr_timestamp[arr_num.index(num)], arr_num, arr_op)
+  while i < len(check_queue) and valid:
+    valid = compareTimestamp(check_queue[i], arr_timestamp[arr_num.index(num)], arr_num, arr_op)
     i+=1
-  return isCurrentValid
+  return valid
 
 
 # compare timestamp of transaction
-def compareTS(TI, TJ, arr_num, arr_op):
+def compareTimestamp(TI, TJ, arr_num, arr_op):
   if (TI[2] < TJ[1]):
     print(f"T{str(TJ[0])} begin after T{str(TI[0])}")
     return True
@@ -137,7 +137,7 @@ def insertRollback(arr_trans, rollback_trans):
   for x in reversed(rollback_trans):
     arr_trans.insert(idx, x)
     if(idx - interval > 0 and change_idx):
-      idx = idx - interval
+      idx -= - interval
     change_idx = random.choice([True, False])
 
   return arr_trans
@@ -228,10 +228,10 @@ def occ(arr_trans, arr_num, arr_timestamp, arr_op, it):
       print()
       x = arr_trans[0][1]
       print(f'Validating T{x}')
-      is_valid = isTransactionValid(arr_trans, x, arr_timestamp, arr_num, arr_op)
+      valid = isTransactionValid(arr_trans, x, arr_timestamp, arr_num, arr_op)
 
       # write data to db if validation success
-      if(is_valid):
+      if(valid):
         print(f"T{x} validated")
 
         if(x in tmp_dict):
