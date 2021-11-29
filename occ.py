@@ -62,18 +62,18 @@ def getStartTimestamp(arr, num):
 
 # get timestamp of commit
 def getCommitTimestamp(arr, num):
-  finish = -1
+  commit = -1
   i = 0
-  stop = False
+  finish = False
 
-  while i < len(arr) and not stop:
+  while i < len(arr) and not finish:
     if (arr[i][1] == str(num)):
       if (arr[i][0] == 'C'):
-        finish = i
-        stop = True
+        commit = i
+        finish = True
     i+=1
 
-  return finish
+  return commit
 
 
 # check validation
