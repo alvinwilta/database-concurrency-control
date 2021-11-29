@@ -57,20 +57,6 @@ class ResourceVersion:
             f'name: {self.name} ver: {self.ver} r-ts: {self.r} w-ts: {self.w}')
 
 
-class Timestamp:
-    '''
-    class Timestamp for transaction timestamp
-    id          : transaction id
-    timestamp   : transaction timestamp
-    '''
-
-    def __init__(self, id: int, timestamp: None):
-        self.id = id
-        self.timestamp = id
-        if (timestamp != None):
-            self.timestamp = timestamp
-
-
 class ManageTS:
     '''
     class timestamp management for MVCC (singleton class)
