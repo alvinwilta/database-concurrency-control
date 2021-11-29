@@ -1,5 +1,5 @@
 # Created by Alvin Wilta 13519163
-# Multiversion Concurrency Control Simulation
+# Multiversion Timestamp Ordering Concurrency Control Simulation
 # Assume rollbacks are cascading
 # Assume rollbacked transactions are always executed immediately after rollback
 # Assume commits are always at the end of each transactions
@@ -54,7 +54,7 @@ class ResourceVersion:
 
     def print_content(self):
         print(
-            f'name: {self.name} ver: {self.ver} r-ts: {self.r} w-ts: {self.w}')
+            f'{self.name}{self.ver}: r-ts: {self.r}; w-ts: {self.w}')
 
 
 class ManageTS:
@@ -99,7 +99,7 @@ class ManageTS:
                             r.write(time=time, ver=id)
                         else:
                             print(
-                                f'[T{id} WRITE {name}] Created {name}{id} with RTS and WTS: {time}')
+                                f'[T{id} WRITE {name}] Created {name}{time} with RTS and WTS: {time}')
                             res.append(ResourceVersion(
                                 name=name, ver=id, r=time, w=time, used=id))
                         break
@@ -134,7 +134,7 @@ class ManageTS:
     def print_content(self):
         print('==========')
         for res in self.rvl:
-            print('#####')
+            print(f'[RESOURCE {res[0].name}]')
             for r in res:
                 r.print_content()
         print('==========')
@@ -158,18 +158,19 @@ def enterTimestamp():
 # trans_list_rollback_n : indicating how many operation will be rollbacked for that transaction - {id:n, id2:n2, ...}
 # rollback_index        : indicating where the rollback is applied and which transaction - [{index: id}, {index2: id2}, ...]
 
+# managing inputs
 if (is_hardcoded):
     op_list, trans_list_id, res_list = u.createTransactionFromCode(
         operations=operations)
 else:
     op_list, trans_list_id, res_list = u.createTransaction()
 
+# initialize required data
 u.prettyPrint(op_list)
 trans_list = {}
 rollback_index = []
 trans_list_rollback_n = {}
 trans_list_ts = enterTimestamp()
-
 
 # initialize transaction list
 for t in trans_list_id:
@@ -178,8 +179,9 @@ for t in trans_list_id:
 for op in op_list:
     trans_list[op.id].append(op)
 
-
+# executing MVCC protocol
 s = ManageTS(res_list, trans_list_id, trans_list_ts)
+print('[STARTED]')
 for i, op in enumerate(op_list):
     trans_list_rollback_n[op.id] += 1
     if (op.op == R):
@@ -187,18 +189,21 @@ for i, op in enumerate(op_list):
     elif (op.op == W):
         need_rollback, roll_trans = s.write(id=op.id, name=op.res)
         if (need_rollback):
+            op_remain = len(op_list)-1-i
             rollback_index.append([i, op.id])
             rollback_operation_n = trans_list_rollback_n[op.id]
-            op_list[i:i] = trans_list[op.id][:rollback_operation_n]
-            t = op.id
+            op_list[i:i] = trans_list[op.id][:rollback_operation_n-1]
             roll_trans.pop(0)
             for ids in roll_trans:
                 # rollback cascade
                 rollback_index.append([i, ids])
                 rollback_operation_n = trans_list_rollback_n[ids]
-                op_list[i+1:i+1] = trans_list[ids][:rollback_operation_n]
-
+                op_list[-op_remain:-
+                        op_remain] = trans_list[ids][:rollback_operation_n]
 for rb in reversed(rollback_index):
     op_list[rb[0]:rb[0]] = [u.Operation(id=rb[1], op=RB, res='commit')]
+print('[FINISHED]')
+
+# printing states
 s.print_content()
 u.prettyPrint(op_list)
