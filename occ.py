@@ -2,8 +2,6 @@
 # Rayhan Alghifari Fauzta 13519039
 
 import random
-import string
-
 
 # check validation
 def isValidTransaction(arr, num, arr_timestamp, arr_num, arr_operation):
