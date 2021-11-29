@@ -160,16 +160,16 @@ def getCommitTS(arr, num):
 
 
 # print inputted transaction
-def printQueue(queue):
-    string = ""
+def printTrans(arr_trans):
+    str = ""
 
-    for jenis2, item2, transaksi2 in queue:
-        if jenis2 != "C":
-            string = string + jenis2+item2+"("+transaksi2+"); "
+    for type, item, trans in arr_trans:
+        if type != "C":
+            str = str + type + item + "("+trans+"); "
         else:
-            string = string + jenis2+item2+"; "
+            str = str + type + item + "; "
 
-    return string
+    return str
 
 
 # read from file
@@ -286,7 +286,7 @@ def run_occ(arr_trans):
 arr_trans = readFile('input_occ.txt')
 
 print("Initial schedule:")
-print(printQueue(arr_trans))
+print(printTrans(arr_trans))
 print()
 arr_result = run_occ(arr_trans)
 print("Schedule after OCC:")
