@@ -35,7 +35,7 @@ Program ini dibuat untuk memenuhi tugas besar 2 Manajemen Basis Data IF3140 yang
 ### Serial Optimistic Concurrency Control
 
 1. Buka terminal atau command prompt pada folder `database-concurrency-control`
-2. Masukan input yang diinginkan untuk OCC pada file `input_occ.txt`. Sesuaikan dengan format yang ada pada contoh.
+2. Masukan input yang diinginkan untuk OCC pada file [input_occ.txt](input_occ.txt). Sesuaikan dengan format yang ada pada contoh.
 3. Jalankan `python occ.py` (atau `python3 occ.py`)
 4. Program akan otomatis berjalan secara _verbose_ atau menjabarkan tiap langkah dari awal hingga akhir sesuai dengan prinsip OCC.
 5. Hasil schedule akhir akan ditampilkan setelah program selesai berjalan.
