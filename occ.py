@@ -77,7 +77,7 @@ def getCommitTimestamp(arr, num):
 
 
 # check validation
-def isTransactionValid(arr, num, arr_timestamp, arr_num, arr_op):
+def isValidTransaction(arr, num, arr_timestamp, arr_num, arr_op):
   valid = True
   check_queue = []
   for x in arr_timestamp:
@@ -228,7 +228,7 @@ def occ(arr_trans, arr_num, arr_timestamp, arr_op, it):
       print()
       x = arr_trans[0][1]
       print(f'Validating T{x}')
-      valid = isTransactionValid(arr_trans, x, arr_timestamp, arr_num, arr_op)
+      valid = isValidTransaction(arr_trans, x, arr_timestamp, arr_num, arr_op)
 
       # write data to db if validation success
       if(valid):
@@ -271,7 +271,7 @@ def occ(arr_trans, arr_num, arr_timestamp, arr_op, it):
 
 
 # OCC runner
-def run_occ(arr_trans):
+def occRun(arr_trans):
   it = 0
   arr_num = getNumTransaction(arr_trans)
   arr_timestamp = getTimestamp(arr_trans, arr_num)
@@ -287,6 +287,6 @@ arr_trans = readFile('input_occ.txt')
 print("Initial schedule:")
 print(printTransaction(arr_trans))
 print()
-arr_result = run_occ(arr_trans)
+arr_result = occRun(arr_trans)
 print("Schedule after OCC:")
 print(arr_result)
