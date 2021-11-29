@@ -1,7 +1,7 @@
 # Optimistic Concurrency Control (OCC) simulation w/ Python
 # Rayhan Alghifari Fauzta 13519039
 
-import random
+from random import choice
 
 
 # get type of operation in transaction
@@ -138,7 +138,7 @@ def insertRollback(arr_trans, rollback_trans):
     arr_trans.insert(idx, x)
     if(idx - interval > 0 and change_idx):
       idx -= - interval
-    change_idx = random.choice([True, False])
+    change_idx = choice([True, False])
 
   return arr_trans
 
