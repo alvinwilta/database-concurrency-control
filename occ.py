@@ -3,8 +3,81 @@
 
 import random
 
+
+# get type of operation in transaction
+def getOperation(arr_trans, arr_num):
+  arr_op = []
+  for i in range(len(arr_num)):
+    arr_op.append((arr_num[i], [], []))
+
+  for t in arr_trans:
+    num_trans = t[1]
+    idx = arr_num.index(num_trans)
+
+    if(t[0] == 'R'):
+      if(t[2] not in arr_op[idx][1]):
+        arr_op[idx][1].append(t[2])
+    elif(t[0] == 'W'):
+      if(t[2] not in arr_op[idx][2]):
+        arr_op[idx][2].append(t[2])
+  
+  return arr_op
+
+
+# get timestamp
+def getTimestamp(arr_trans, arr_num):
+  arr_timestamp = []
+
+  for n in arr_num:
+    arr_timestamp.append((n, getStartTimestamp(arr_trans, n), getCommitTimestamp(arr_trans, n), getCommitTimestamp(arr_trans, n)))
+
+  return arr_timestamp
+
+
+# get number of transaction
+def getNumTransaction(arr_trans):
+  arr_num = []
+
+  for t in arr_trans:
+    if t[1] not in arr_num:
+      arr_num.append(t[1])
+
+  return arr_num
+
+
+# get timestamp of start
+def getStartTimestamp(arr, num):
+  start = -1
+  i = 0
+  stop = False
+
+  while i < len(arr) and not stop:
+    if (arr[i][1] == str(num)):
+      start = i
+      stop = True
+    i+=1
+
+  return start
+
+
+# get timestamp of commit
+def getCommitTimestamp(arr, num):
+  finish = -1
+  i = 0
+  stop = False
+
+  while i < len(arr) and not stop:
+    if (arr[i][1] == str(num)):
+      if (arr[i][0] == 'C'):
+        finish = i
+        stop = True
+    i+=1
+
+  return finish
+
+
 # check validation
-def isValidTransaction(arr, num, arr_timestamp, arr_num, arr_operation):
+def isTransactionValid(arr, num, arr_timestamp, arr_num, arr_op):
   isCurrentValid = True
   check_queue = []
   for x in arr_timestamp:
@@ -23,13 +96,13 @@ def isValidTransaction(arr, num, arr_timestamp, arr_num, arr_operation):
   # check from current transaction to all transaction before
   i = 0
   while i < len(check_queue) and isCurrentValid:
-    isCurrentValid = compareTS(check_queue[i], arr_timestamp[arr_num.index(num)], arr_num, arr_operation)
+    isCurrentValid = compareTS(check_queue[i], arr_timestamp[arr_num.index(num)], arr_num, arr_op)
     i+=1
   return isCurrentValid
 
 
 # compare timestamp of transaction
-def compareTS(TI, TJ, arr_num, arr_operation):
+def compareTS(TI, TJ, arr_num, arr_op):
   if (TI[2] < TJ[1]):
     print(f"T{str(TJ[0])} begin after T{str(TI[0])}")
     return True
@@ -38,10 +111,10 @@ def compareTS(TI, TJ, arr_num, arr_operation):
       print(f"T{str(TI[0])} finish before T{str(TJ[0])}")
       isNotIntersect = True
 
-      for i in range(len(arr_operation[arr_num.index(TJ[0])][1])):
-        if(arr_operation[arr_num.index(TJ[0])][1][i] in arr_operation[arr_num.index(TI[0])][2]):
+      for i in range(len(arr_op[arr_num.index(TJ[0])][1])):
+        if(arr_op[arr_num.index(TJ[0])][1][i] in arr_op[arr_num.index(TI[0])][2]):
           isNotIntersect = False
-          intersect_item = arr_operation[arr_num.index(TJ[0])][1][i]
+          intersect_item = arr_op[arr_num.index(TJ[0])][1][i]
 
       if(isNotIntersect):
         print(f"T{str(TJ[0])} did not read data of T{str(TI[0])}")
@@ -70,6 +143,19 @@ def insertRollback(arr_trans, rollback_trans):
   return arr_trans
 
 
+# print inputted transaction
+def printTransaction(arr_trans):
+    str = ""
+
+    for type, item, trans in arr_trans:
+        if type != "C":
+            str = str + type + item + "("+trans+"); "
+        else:
+            str = str + type + item + "; "
+
+    return str
+
+
 # print format
 def formatPrint(arr):
   format = ""
@@ -83,91 +169,6 @@ def formatPrint(arr):
     format += activity
 
   return format
-
-
-# get type of operation in transaction
-def getTransactionOperation(arr, arr_num):
-  arr_operation = []
-  for i in range(len(arr_num)):
-    arr_operation.append((arr_num[i], [], []))
-
-  for x in arr:
-    num_transaction = x[1]
-    idx = arr_num.index(num_transaction)
-
-    if(x[0] == 'R'):
-      if(x[2] not in arr_operation[idx][1]):
-        arr_operation[idx][1].append(x[2])
-    elif(x[0] == 'W'):
-      if(x[2] not in arr_operation[idx][2]):
-        arr_operation[idx][2].append(x[2])
-  
-  return arr_operation
-
-
-# get timestamp
-def getArrTS(arr_num, arr_trans):
-  arr_timestamp = []
-
-  for x in arr_num:
-    arr_timestamp.append((x, getStartTS(arr_trans, x), getCommitTS(arr_trans, x), getCommitTS(arr_trans, x)))
-
-  return arr_timestamp
-
-
-# get number of transaction
-def getNumTransaction(arr):
-  arr_num = []
-
-  for x in arr:
-    if x[1] not in arr_num:
-      arr_num.append(x[1])
-
-  return arr_num
-
-
-# get timestamp of start
-def getStartTS(arr, num):
-  start = -1
-  i = 0
-  stop = False
-
-  while i < len(arr) and not stop:
-    if (arr[i][1] == str(num)):
-      start = i
-      stop = True
-    i+=1
-
-  return start
-
-
-# get commit of transaction
-def getCommitTS(arr, num):
-  finish = -1
-  i = 0
-  stop = False
-
-  while i < len(arr) and not stop:
-    if (arr[i][1] == str(num)):
-      if (arr[i][0] == 'C'):
-        finish = i
-        stop = True
-    i+=1
-
-  return finish
-
-
-# print inputted transaction
-def printTrans(arr_trans):
-    str = ""
-
-    for type, item, trans in arr_trans:
-        if type != "C":
-            str = str + type + item + "("+trans+"); "
-        else:
-            str = str + type + item + "; "
-
-    return str
 
 
 # read from file
@@ -198,7 +199,7 @@ def readFile(filename):
 tmp_arr = []
 tmp_dict = {}
 # OCC
-def occ(arr_trans, arr_num, arr_timestamp, arr_operation, it):
+def occ(arr_trans, arr_num, arr_timestamp, arr_op, it):
   stop = False
 
   # iterate through each transaction
@@ -227,7 +228,7 @@ def occ(arr_trans, arr_num, arr_timestamp, arr_operation, it):
       print()
       x = arr_trans[0][1]
       print(f'Validating T{x}')
-      is_valid = isValidTransaction(arr_trans, x, arr_timestamp, arr_num, arr_operation)
+      is_valid = isTransactionValid(arr_trans, x, arr_timestamp, arr_num, arr_op)
 
       # write data to db if validation success
       if(is_valid):
@@ -260,22 +261,22 @@ def occ(arr_trans, arr_num, arr_timestamp, arr_operation, it):
         i+=1
 
       arr_trans = insertRollback(arr_trans, rollback_trans)
-      all_arr = tmp_arr + arr_trans
-      arr_timestamp = getArrTS(arr_num, all_arr)
+      all_trans = tmp_arr + arr_trans
+      arr_timestamp = getTimestamp(all_trans, arr_num)
       break
   
   # continue to next transaction
   if(len(arr_trans)!=0):
-    occ(arr_trans, arr_num, arr_timestamp, arr_operation, it-len(rollback_trans))
+    occ(arr_trans, arr_num, arr_timestamp, arr_op, it-len(rollback_trans))
 
 
 # OCC runner
 def run_occ(arr_trans):
   it = 0
   arr_num = getNumTransaction(arr_trans)
-  arr_timestamp = getArrTS(arr_num, arr_trans)
-  arr_operation = getTransactionOperation(arr_trans, arr_num)
-  occ(arr_trans, arr_num, arr_timestamp, arr_operation, it)
+  arr_timestamp = getTimestamp(arr_trans, arr_num)
+  arr_op = getOperation(arr_trans, arr_num)
+  occ(arr_trans, arr_num, arr_timestamp, arr_op, it)
   return formatPrint(tmp_arr)
 
 
@@ -284,7 +285,7 @@ def run_occ(arr_trans):
 arr_trans = readFile('input_occ.txt')
 
 print("Initial schedule:")
-print(printTrans(arr_trans))
+print(printTransaction(arr_trans))
 print()
 arr_result = run_occ(arr_trans)
 print("Schedule after OCC:")
