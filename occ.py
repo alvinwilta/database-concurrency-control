@@ -102,29 +102,29 @@ def isTransactionValid(arr, num, arr_timestamp, arr_num, arr_op):
 
 
 # compare timestamp of transaction
-def compareTimestamp(TI, TJ, arr_num, arr_op):
-  if (TI[2] < TJ[1]):
-    print(f"T{str(TJ[0])} begin after T{str(TI[0])}")
+def compareTimestamp(TA, TB, arr_num, arr_op):
+  if (TA[2] < TB[1]):
+    print(f"T{str(TB[0])} begin after T{str(TA[0])}")
     return True
   else:
-    if(TJ[1] < TI[2] and TI[2] < TJ[3]):
-      print(f"T{str(TI[0])} finish before T{str(TJ[0])}")
+    if(TB[1] < TA[2] and TA[2] < TB[3]):
+      print(f"T{str(TA[0])} finish before T{str(TB[0])}")
       isNotIntersect = True
 
-      for i in range(len(arr_op[arr_num.index(TJ[0])][1])):
-        if(arr_op[arr_num.index(TJ[0])][1][i] in arr_op[arr_num.index(TI[0])][2]):
+      for i in range(len(arr_op[arr_num.index(TB[0])][1])):
+        if(arr_op[arr_num.index(TB[0])][1][i] in arr_op[arr_num.index(TA[0])][2]):
           isNotIntersect = False
-          intersect_item = arr_op[arr_num.index(TJ[0])][1][i]
+          intersect_item = arr_op[arr_num.index(TB[0])][1][i]
 
       if(isNotIntersect):
-        print(f"T{str(TJ[0])} did not read data of T{str(TI[0])}")
+        print(f"T{str(TB[0])} did not read data of T{str(TA[0])}")
       else:
-        print(f"T{str(TJ[0])} read data of T{str(TI[0])} that is {intersect_item}")
+        print(f"T{str(TB[0])} read data of T{str(TA[0])} that is {intersect_item}")
 
       return isNotIntersect
     
     else:
-      print(f"No validation requirements are fulfilled with T{str(TI[0])}")
+      print(f"No validation requirements are fulfilled with T{str(TA[0])}")
       return False
 
 
