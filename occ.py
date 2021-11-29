@@ -103,11 +103,11 @@ def isValidTransaction(arr, num, arr_timestamp, arr_num, arr_op):
 
 # compare timestamp of transaction
 def compareTimestamp(TA, TB, arr_num, arr_op):
-  if (TA[2] < TB[1]):
+  if (TB[1] > TA[2]):
     print(f"T{str(TB[0])} begin after T{str(TA[0])}")
     return True
   else:
-    if(TB[1] < TA[2] and TA[2] < TB[3]):
+    if(TB[1] < TA[2] and TB[3] > TA[2]):
       print(f"T{str(TA[0])} finish before T{str(TB[0])}")
       isNotIntersect = True
 
@@ -137,14 +137,14 @@ def insertRollback(arr_trans, rollback_trans):
   for x in reversed(rollback_trans):
     arr_trans.insert(idx, x)
     if(idx - interval > 0 and change_idx):
-      idx -= - interval
+      idx -= interval
     change_idx = choice([True, False])
 
   return arr_trans
 
 
 # print inputted transaction
-def printTransaction(arr_trans):
+def printSchedule(arr_trans):
     str = ""
 
     for type, item, trans in arr_trans:
@@ -285,7 +285,7 @@ def occRun(arr_trans):
 arr_trans = readFile('input_occ.txt')
 
 print("Initial schedule:")
-print(printTransaction(arr_trans))
+print(printSchedule(arr_trans))
 print()
 arr_result = occRun(arr_trans)
 print("Schedule after OCC:")
