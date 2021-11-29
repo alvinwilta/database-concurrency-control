@@ -2,7 +2,7 @@
 
 from typing import Callable, Dict, List
 
-from serialdb_occ import CachingDatabaseWrapper, Database, Optional, Transaction
+from db_occ import CachingDatabaseWrapper, Database, Optional, Transaction
 
 class SerialTransactionExecutor:
     def __init__(self, db: 'SerialDatabase', txn: Transaction) -> None:
