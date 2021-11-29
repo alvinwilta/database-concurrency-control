@@ -94,7 +94,7 @@ class ManageTS:
                 for i, r in enumerate(reversed(res)):
                     # iterating to find suitable version for writing
                     time = int(self.tsl[id])
-                    if (r.r <= time):
+                    if (r.r < time):
                         if (r.w == time):
                             r.write(time=time, ver=id)
                         else:
